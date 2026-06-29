@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI-Analyse — Lou's FoodTruck Planer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+  :root {
+    --bg:#18181B; --surface:#1F1F23; --border:#2E2E35;
+    --amber:#F59E0B; --text:#F4F4F5; --muted:#71717A;
+    --green:#22C55E; --red:#EF4444; --blue:#3B82F6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; padding-bottom:48px; }
+
+  header {
+    display:flex; align-items:center; gap:16px;
+    padding:20px 24px; border-bottom:1px solid var(--border);
+  }
+  .back { color:var(--amber); cursor:pointer; font-size:20px; }
+  .header-title { font-size:17px; font-weight:600; }
+  .header-sub { font-size:12px; color:var(--muted); }
+
+  main { padding:24px; max-width:680px; margin:0 auto; }
+
+  .section-title {
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+  }
+
+  .filter-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:28px; }
+  select {
+    width:100%; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:12px 14px; color:var(--text);
+    font-family:'Space Grotesk',sans-serif; font-size:14px; outline:none;
+    -webkit-appearance:none;
+  }
+  select:focus { border-color:var(--amber); }
+
+  .btn-primary {
+    width:100%; background:var(--amber); color:#18181B; border:none;
+    border-radius:12px; padding:16px; font-family:'Space Grotesk',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s;
+    margin-bottom:28px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary:hover { opacity:0.9; }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* KI Analyse Box */
+  .ai-box {
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; margin-bottom:24px; display:none;
+  }
+  .ai-header {
+    background:linear-gradient(135deg, #92400E 0%, #78350F 100%);
+    border-bottom:1px solid var(--amber)44;
+    padding:18px 20px; display:flex; align-items:center; gap:12px;
+  }
+  .ai-icon { font-size:24px; }
+  .ai-header h2 { font-size:15px; font-weight:700; }
+  .ai-header p { font-size:12px; color:#FCD34D; margin-top:2px; }
+  .ai-body { padding:20px; }
+
+  .ai-thinking {
+    display:flex; align-items:center; gap:12px; padding:20px;
+    color:var(--muted); font-size:14px;
+  }
+  .spinner {
+    width:20px; height:20px; border:2px solid var(--border);
+    border-top-color:var(--amber); border-radius:50%;
+    animation:spin 0.8s linear infinite; flex-shrink:0;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .ai-content { font-size:14px; line-height:1.7; color:var(--text); }
+  .ai-content h3 { font-size:15px; font-weight:700; color:var(--amber); margin:16px 0 8px; }
+  .ai-content h3:first-child { margin-top:0; }
+  .ai-content ul { padding-left:18px; }
+  .ai-content li { margin-bottom:4px; }
+  .ai-content strong { color:var(--amber); }
+
+  /* Produkt-Übersicht Tabelle */
+  .data-section { margin-bottom:28px; }
+  .data-table { width:100%; border-collapse:collapse; }
+  .data-table th {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); padding:8px 12px; text-align:left;
+    border-bottom:1px solid var(--border); font-weight:600;
+  }
+  .data-table td { padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border)44; }
+  .data-table tr:last-child td { border-bottom:none; }
+  .bar-wrap { background:var(--bg); border-radius:4px; height:6px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; margin-left:8px; }
+  .bar-fill { height:100%; border-radius:4px; background:var(--amber); }
+  .bar-fill.good { background:var(--green); }
+  .bar-fill.warn { background:var(--red); }
+  .pct { font-weight:700; }
+  .pct.good { color:var(--green); }
+  .pct.warn { color:var(--red); }
+  .pct.mid { color:var(--amber); }
+
+  .empty { font-size:14px; color:var(--muted); text-align:center; padding:40px; }
+
+  .einkauf-box {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px; margin-bottom:24px; display:none;
+  }
+  .einkauf-title { font-size:13px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .einkauf-item {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0; border-bottom:1px solid var(--border)44; font-size:13px;
+  }
+  .einkauf-item:last-child { border-bottom:none; }
+  .einkauf-menge { font-weight:700; color:var(--amber); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="back" onclick="window.location.href='dashboard.html'">←</span>
+  <div>
+    <div class="header-title">KI-Analyse</div>
+    <div class="header-sub">Produktionsempfehlung für morgen</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="filter-row">
+    <div>
+      <select id="filter-konzept">
+        <option value="">Alle Konzepte</option>
+        <option value="Maultasche">🥟 Maultasche</option>
+        <option value="Burger">🍔 Continental Burger</option>
+        <option value="Asia">🥢 Woking Lou</option>
+        <option value="Taco">🌮 Taco Loco</option>
+      </select>
+    </div>
+    <div>
+      <select id="filter-zeitraum">
+        <option value="14">Letzte 14 Tage</option>
+        <option value="30">Letzte 30 Tage</option>
+        <option value="7">Letzte 7 Tage</option>
+        <option value="90">Letzte 90 Tage</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btn-analyse" onclick="starteAnalyse()">
+    🤖 KI-Analyse starten
+  </button>
+
+  <!-- Daten-Übersicht -->
+  <div class="data-section" id="data-section" style="display:none">
+    <div class="section-title">Datengrundlage — Ausverkaufsquote</div>
+    <table class="data-table">
+      <thead><tr><th>Produkt</th><th>Ø Prod.</th><th>Ø Verk.</th><th>Quote</th></tr></thead>
+      <tbody id="data-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- KI-Analyse -->
+  <div class="ai-box" id="ai-box">
+    <div class="ai-header">
+      <span class="ai-icon">🤖</span>
+      <div>
+        <h2>KI-Produktionsempfehlung</h2>
+        <p id="ai-context-label">Für morgen · Lou's Maultasche</p>
+      </div>
+    </div>
+    <div class="ai-body">
+      <div class="ai-thinking" id="ai-thinking">
+        <div class="spinner"></div>
+        <span>Analysiere Verkaufsdaten und erstelle Empfehlung…</span>
+      </div>
+      <div class="ai-content" id="ai-content" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Einkaufsliste -->
+  <div class="einkauf-box" id="einkauf-box">
+    <div class="einkauf-title">🛒 Einkaufsliste für morgen</div>
+    <div id="einkauf-list"></div>
+  </div>
+
+  <div id="empty-state" class="empty" style="display:none">
+    Noch keine Einträge vorhanden. Bitte erst Tage erfassen.
+  </div>
+
+</main>
+
+<script>
+var SUPABASE_URL = 'https://ysqzdqazcgyuzdorauiq.supabase.co';
+var SUPABASE_KEY = 'YOUR_ANON_KEY';
+var BETREIBER_ID = sessionStorage.getItem('ft_betreiber_id');
+var BETREIBER_NAME = sessionStorage.getItem('ft_betreiber_name') || "Lou's Maultasche";
+
+function headers() {
+  return { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+}
+
+function starteAnalyse() {
+  if (!BETREIBER_ID) { window.location.href = 'index.html'; return; }
+
+  var btn = document.getElementById('btn-analyse');
+  btn.disabled = true;
+  btn.textContent = '⏳ Daten werden geladen…';
+
+  var konzept = document.getElementById('filter-konzept').value;
+  var tage = parseInt(document.getElementById('filter-zeitraum').value) || 14;
+  var seit = new Date();
+  seit.setDate(seit.getDate() - tage);
+  var seitStr = seit.toISOString().split('T')[0];
+
+  // Eintraege laden
+  fetch(SUPABASE_URL + '/rest/v1/ft_tageseintrag?betreiber_id=eq.' + BETREIBER_ID + '&datum=gte.' + seitStr +
+    (konzept ? '&konzept=eq.' + encodeURIComponent(konzept) : '') + '&select=id,datum,wetter,konzept,truck_name,standort_id', {
+    headers: headers()
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(eintraege) {
+    if (!eintraege.length) {
+      document.getElementById('empty-state').style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '🤖 KI-Analyse starten';
+      return;
+    }
+
+    var ids = eintraege.map(function(e) { return e.id; });
+
+    // Positionen laden
+    fetch(SUPABASE_URL + '/rest/v1/ft_tageseintrag_position?tageseintrag_id=in.(' + ids.join(',') + ')&select=sortiment_id,produziert,verkauft,rest,ft_sortiment(name,konzept,kategorie)', {
+      headers: headers()
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(positionen) {
+
+      // Aggregieren nach Produkt
+      var produktMap = {};
+      positionen.forEach(function(p) {
+        var sn = p.ft_sortiment ? p.ft_sortiment.name : p.sortiment_id;
+        var sk = p.ft_sortiment ? p.ft_sortiment.konzept : '';
+        var key = sn;
+        if (!produktMap[key]) produktMap[key] = { name:sn, konzept:sk, prod:[], verk:[], rest:[] };
+        produktMap[key].prod.push(p.produziert);
+        produktMap[key].verk.push(p.verkauft);
+        produktMap[key].rest.push(p.rest);
+      });
+
+      var produktStats = Object.values(produktMap).map(function(p) {
+        var avgProd = p.prod.reduce(function(a,b){return a+b;},0) / p.prod.length;
+        var avgVerk = p.verk.reduce(function(a,b){return a+b;},0) / p.verk.length;
+        var quote = avgProd > 0 ? avgVerk / avgProd : 0;
+        return { name:p.name, konzept:p.konzept, avgProd:Math.round(avgProd), avgVerk:Math.round(avgVerk), quote:Math.round(quote*100) };
+      }).sort(function(a,b){ return b.avgVerk - a.avgVerk; });
+
+      renderDataTable(produktStats);
+      renderEinkaufsliste(produktStats);
+      starteKIAnalyse(produktStats, eintraege, tage, konzept);
+
+      btn.disabled = false;
+      btn.innerHTML = '🔄 Neu analysieren';
+    });
+  });
+}
+
+function renderDataTable(stats) {
+  if (!stats.length) return;
+  var html = '';
+  stats.forEach(function(p) {
+    var cls = p.quote >= 85 ? 'good' : p.quote >= 60 ? 'mid' : 'warn';
+    html += '<tr><td><strong>' + p.name + '</strong></td>' +
+      '<td>' + p.avgProd + '</td>' +
+      '<td>' + p.avgVerk + '</td>' +
+      '<td><span class="pct ' + cls + '">' + p.quote + '%</span>' +
+      '<span class="bar-wrap"><span class="bar-fill ' + cls + '" style="width:' + Math.min(100,p.quote) + '%"></span></span></td>' +
+      '</tr>';
+  });
+  document.getElementById('data-tbody').innerHTML = html;
+  document.getElementById('data-section').style.display = 'block';
+}
+
+function renderEinkaufsliste(stats) {
+  var html = '';
+  stats.forEach(function(p) {
+    if (p.avgProd === 0) return;
+    var empf = p.quote >= 85 ? Math.round(p.avgProd * 1.15) :
+               p.quote >= 60 ? p.avgProd : Math.round(p.avgProd * 0.85);
+    html += '<div class="einkauf-item"><span>' + p.name + '</span><span class="einkauf-menge">' + empf + ' ' + (p.einheit || 'Stück') + '</span></div>';
+  });
+  if (html) {
+    document.getElementById('einkauf-list').innerHTML = html;
+    document.getElementById('einkauf-box').style.display = 'block';
+  }
+}
+
+function starteKIAnalyse(stats, eintraege, tage, konzeptFilter) {
+  var aiBox = document.getElementById('ai-box');
+  var aiThinking = document.getElementById('ai-thinking');
+  var aiContent = document.getElementById('ai-content');
+  aiBox.style.display = 'block';
+  aiThinking.style.display = 'flex';
+  aiContent.style.display = 'none';
+
+  var morgen = new Date();
+  morgen.setDate(morgen.getDate() + 1);
+  var morgenStr = morgen.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+
+  document.getElementById('ai-context-label').textContent = 'Für ' + morgenStr + (konzeptFilter ? ' · ' + konzeptFilter : '');
+
+  var wetterCounts = {};
+  eintraege.forEach(function(e) { if (e.wetter) wetterCounts[e.wetter] = (wetterCounts[e.wetter]||0)+1; });
+
+  var datenText = stats.map(function(p) {
+    return p.name + ': Ø ' + p.avgProd + ' produziert, Ø ' + p.avgVerk + ' verkauft (' + p.quote + '% Quote)';
+  }).join('\n');
+
+  var prompt = 'Du bist Betriebsberater für ' + BETREIBER_NAME + ', ein professionelles Food-Truck-Catering in Stuttgart mit 9 Trucks und Konzepten (Maultasche, Continental Burger, Woking Lou, Taco Loco).\n\n' +
+    'Analysiere diese Verkaufsdaten der letzten ' + tage + ' Tage' + (konzeptFilter ? ' für das Konzept ' + konzeptFilter : '') + ':\n\n' +
+    datenText + '\n\n' +
+    'Morgen ist ' + morgenStr + '.\n\n' +
+    'Erstelle eine strukturierte Produktionsempfehlung mit:\n' +
+    '### 📊 Kurzanalyse\n(2-3 Sätze: was läuft gut, was nicht)\n\n' +
+    '### 🎯 Produktionsempfehlung für morgen\n(Produkte mit konkreten Mengen, kurze Begründung)\n\n' +
+    '### ⚠️ Handlungshinweise\n(Max. 3 konkrete Tipps)\n\n' +
+    'Antworte auf Deutsch, direkt und praxisnah. Keine langen Einleitungen.';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var text = data.content && data.content[0] ? data.content[0].text : 'Fehler bei der Analyse.';
+    // Markdown → HTML
+    text = text
+      .replace(/### (.*)/g, '<h3>$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^- (.*)/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+    aiContent.innerHTML = text;
+    aiThinking.style.display = 'none';
+    aiContent.style.display = 'block';
+  })
+  .catch(function(err) {
+    aiContent.innerHTML = '<p style="color:var(--red)">Fehler: ' + err.message + '</p>';
+    aiThinking.style.display = 'none';
+    aiContent.style.display = 'block';
+  });
+}
+
+if (!BETREIBER_ID) window.location.href = 'index.html';
+</script>
+</body>
+</html>

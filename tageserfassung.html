@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tageserfassung — Lou's FoodTruck Planer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+  :root {
+    --bg:#18181B; --surface:#1F1F23; --border:#2E2E35;
+    --amber:#F59E0B; --text:#F4F4F5; --muted:#71717A;
+    --green:#22C55E; --red:#EF4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; padding-bottom:40px; }
+
+  header {
+    display:flex; align-items:center; gap:16px;
+    padding:20px 24px; border-bottom:1px solid var(--border);
+  }
+  .back { color:var(--amber); cursor:pointer; font-size:20px; }
+  .header-title { font-size:17px; font-weight:600; }
+  .header-sub { font-size:12px; color:var(--muted); }
+
+  main { padding:24px; max-width:640px; margin:0 auto; }
+
+  .section { margin-bottom:28px; }
+  .section-title {
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+  }
+
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
+
+  select, input[type="text"], input[type="date"], textarea {
+    width:100%; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:12px 14px; color:var(--text);
+    font-family:'Space Grotesk',sans-serif; font-size:14px; outline:none;
+    transition:border-color 0.2s; -webkit-appearance:none;
+  }
+  select:focus, input:focus, textarea:focus { border-color:var(--amber); }
+  option { background:var(--surface); }
+
+  .wetter-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .wetter-btn {
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:10px 4px; text-align:center; cursor:pointer; font-size:13px;
+    transition:all 0.15s;
+  }
+  .wetter-btn .icon { font-size:20px; display:block; margin-bottom:3px; }
+  .wetter-btn.active { border-color:var(--amber); background:#92400E22; }
+
+  .produkt-table { width:100%; border-collapse:collapse; }
+  .produkt-table th {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); padding:8px 12px; text-align:left;
+    border-bottom:1px solid var(--border);
+  }
+  .produkt-table td { padding:8px 4px; vertical-align:middle; }
+  .produkt-table tr:not(:last-child) td { border-bottom:1px solid var(--border)22; }
+  .produkt-name { font-size:14px; font-weight:500; padding-left:8px !important; }
+  .produkt-kat { font-size:11px; color:var(--muted); display:block; }
+
+  .num-input {
+    width:72px !important; text-align:center; padding:8px 6px !important;
+    font-size:15px; font-weight:600;
+  }
+  .rest-val { font-size:15px; font-weight:700; color:var(--amber); text-align:center; padding:0 8px; }
+
+  .btn-primary {
+    width:100%; background:var(--amber); color:#18181B; border:none;
+    border-radius:12px; padding:16px; font-family:'Space Grotesk',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s;
+    margin-top:8px;
+  }
+  .btn-primary:hover { opacity:0.9; }
+
+  .toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--green); color:#fff; padding:12px 24px; border-radius:10px;
+    font-weight:600; font-size:14px; transition:transform 0.3s; z-index:999;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+
+  .konzept-badge {
+    display:inline-block; background:var(--amber)22; border:1px solid var(--amber)44;
+    color:var(--amber); font-size:10px; font-weight:600; border-radius:4px;
+    padding:2px 6px; margin-left:6px; vertical-align:middle; text-transform:uppercase; letter-spacing:0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="back" onclick="window.location.href='dashboard.html'">←</span>
+  <div>
+    <div class="header-title">Tageserfassung</div>
+    <div class="header-sub" id="header-sub">Heute erfassen</div>
+  </div>
+</header>
+
+<main>
+  <!-- Kontext -->
+  <div class="section">
+    <div class="section-title">Tages-Kontext</div>
+
+    <div class="field">
+      <label>Datum</label>
+      <input type="date" id="datum">
+    </div>
+
+    <div class="field">
+      <label>Standort</label>
+      <select id="standort">
+        <option value="">— Standort wählen —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Konzept / Truck</label>
+      <select id="konzept">
+        <option value="Maultasche">🥟 Maultasche</option>
+        <option value="Burger">🍔 Continental Burger</option>
+        <option value="Asia">🥢 Woking Lou</option>
+        <option value="Taco">🌮 Taco Loco</option>
+        <option value="Standard">Alle / Mix</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Truck / Fahrer (optional)</label>
+      <input type="text" id="truck_name" placeholder="z.B. Truck 3 · Andreas">
+    </div>
+
+    <div class="field">
+      <label>Wetter</label>
+      <div class="wetter-row">
+        <div class="wetter-btn" onclick="setWetter('sonnig',this)">
+          <span class="icon">☀️</span>Sonnig
+        </div>
+        <div class="wetter-btn" onclick="setWetter('bewoelkt',this)">
+          <span class="icon">⛅</span>Bewölkt
+        </div>
+        <div class="wetter-btn" onclick="setWetter('regen',this)">
+          <span class="icon">🌧️</span>Regen
+        </div>
+        <div class="wetter-btn" onclick="setWetter('kalt',this)">
+          <span class="icon">🥶</span>Kalt
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Besonderheit (optional)</label>
+      <input type="text" id="besonderheit" placeholder="z.B. Stadtfest, Betriebsurlaub nebenan, Großauftrag…">
+    </div>
+  </div>
+
+  <!-- Produkte -->
+  <div class="section">
+    <div class="section-title">Produkte erfassen</div>
+    <div id="produkt-container"><div class="loading">Produkte werden geladen…</div></div>
+  </div>
+
+  <button class="btn-primary" onclick="speichern()">💾 Tag speichern</button>
+</main>
+
+<div class="toast" id="toast">✓ Tag gespeichert!</div>
+
+<script>
+var SUPABASE_URL = 'https://ysqzdqazcgyuzdorauiq.supabase.co';
+var SUPABASE_KEY = 'YOUR_ANON_KEY';
+var BETREIBER_ID = sessionStorage.getItem('ft_betreiber_id');
+var selectedWetter = '';
+var produkte = [];
+
+function headers() {
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  };
+}
+
+function setWetter(val, el) {
+  selectedWetter = val;
+  document.querySelectorAll('.wetter-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcRest(row) {
+  var p = parseInt(row.querySelector('.prod-input').value) || 0;
+  var v = parseInt(row.querySelector('.verk-input').value) || 0;
+  row.querySelector('.rest-val').textContent = Math.max(0, p - v);
+}
+
+function renderProdukte(data, konzeptFilter) {
+  produkte = data;
+  var filtered = konzeptFilter && konzeptFilter !== 'Standard'
+    ? data.filter(function(p) { return p.konzept === konzeptFilter || p.konzept === 'Standard'; })
+    : data;
+
+  if (!filtered.length) {
+    document.getElementById('produkt-container').innerHTML = '<div class="loading">Keine Produkte für dieses Konzept.</div>';
+    return;
+  }
+
+  var html = '<table class="produkt-table"><thead><tr><th>Produkt</th><th style="text-align:center">Prod.</th><th style="text-align:center">Verk.</th><th style="text-align:center">Rest</th></tr></thead><tbody>';
+  filtered.forEach(function(p) {
+    html += '<tr data-id="' + p.id + '">' +
+      '<td class="produkt-name">' + p.name + '<span class="produkt-kat">' + (p.kategorie || '') + '</span>' +
+      (p.konzept && p.konzept !== 'Standard' ? '<span class="konzept-badge">' + p.konzept + '</span>' : '') +
+      '</td>' +
+      '<td><input type="number" class="num-input prod-input" min="0" value="0" oninput="calcRest(this.closest(\'tr\'))"></td>' +
+      '<td><input type="number" class="num-input verk-input" min="0" value="0" oninput="calcRest(this.closest(\'tr\'))"></td>' +
+      '<td><div class="rest-val">0</div></td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('produkt-container').innerHTML = html;
+}
+
+function speichern() {
+  if (!BETREIBER_ID) { alert('Bitte erst einloggen.'); return; }
+  var standort = document.getElementById('standort').value;
+  if (!standort) { alert('Bitte Standort wählen.'); return; }
+
+  var payload = {
+    betreiber_id: BETREIBER_ID,
+    standort_id: standort,
+    datum: document.getElementById('datum').value,
+    wetter: selectedWetter || null,
+    konzept: document.getElementById('konzept').value,
+    truck_name: document.getElementById('truck_name').value || null,
+    besonderheit: document.getElementById('besonderheit').value || null
+  };
+
+  fetch(SUPABASE_URL + '/rest/v1/ft_tageseintrag', {
+    method: 'POST',
+    headers: Object.assign({}, headers(), {'Prefer': 'return=representation'}),
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var eintrag_id = data[0].id;
+    var rows = document.querySelectorAll('#produkt-container tbody tr');
+    var positionen = [];
+    rows.forEach(function(row) {
+      var prod = parseInt(row.querySelector('.prod-input').value) || 0;
+      var verk = parseInt(row.querySelector('.verk-input').value) || 0;
+      if (prod > 0 || verk > 0) {
+        positionen.push({
+          tageseintrag_id: eintrag_id,
+          sortiment_id: row.getAttribute('data-id'),
+          produziert: prod,
+          verkauft: verk,
+          rest: Math.max(0, prod - verk)
+        });
+      }
+    });
+
+    if (positionen.length === 0) {
+      showToast('Tag gespeichert (keine Produkte eingetragen).');
+      setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+      return;
+    }
+
+    fetch(SUPABASE_URL + '/rest/v1/ft_tageseintrag_position', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(positionen)
+    }).then(function() {
+      showToast('✓ ' + positionen.length + ' Produkte gespeichert!');
+      setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+    });
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+function init() {
+  if (!BETREIBER_ID) { window.location.href = 'index.html'; return; }
+
+  // Datum auf heute
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('datum').value = today;
+  document.getElementById('header-sub').textContent = 'Heute, ' + new Date().toLocaleDateString('de-DE');
+
+  // Standorte laden
+  fetch(SUPABASE_URL + '/rest/v1/ft_standorte?betreiber_id=eq.' + BETREIBER_ID + '&aktiv=eq.true&select=id,name,typ&order=name', {
+    headers: headers()
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var sel = document.getElementById('standort');
+    data.forEach(function(s) {
+      var icons = {wochenmarkt:'🏪', event:'🎪', catering:'🏢', eigener_stand:'📍'};
+      var o = document.createElement('option');
+      o.value = s.id;
+      o.textContent = (icons[s.typ] || '📍') + ' ' + s.name;
+      sel.appendChild(o);
+    });
+  });
+
+  // Produkte laden
+  fetch(SUPABASE_URL + '/rest/v1/ft_sortiment?betreiber_id=eq.' + BETREIBER_ID + '&aktiv=eq.true&select=id,name,kategorie,konzept,einheit&order=konzept,name', {
+    headers: headers()
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    renderProdukte(data, 'Maultasche');
+  });
+
+  // Konzept-Wechsel → Produkte filtern
+  document.getElementById('konzept').addEventListener('change', function() {
+    renderProdukte(produkte, this.value);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
