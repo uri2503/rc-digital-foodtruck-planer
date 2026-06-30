@@ -89,7 +89,6 @@
     <div class="header-logo">Lou's</div>
     <div class="header-name" id="header-name">FoodTruck Planer</div>
   </div>
-  <span class="logout" onclick="logout()">Abmelden</span>
 </header>
 
 <main>
@@ -155,10 +154,10 @@
 <script>
 var SUPABASE_URL = 'https://ysqzdqazcgyuzdorauiq.supabase.co';
 var SUPABASE_KEY = 'YOUR_ANON_KEY';
+var BETREIBER_ID = '9ec49d49-6d3f-429e-bec4-79db0354cb73';
+var BETREIBER_NAME = "Lou's Maultasche";
 
 function logout() {
-  sessionStorage.clear();
-  window.location.href = 'index.html';
 }
 
 function headers() {
@@ -178,7 +177,6 @@ function setGreeting() {
 function loadDashboard() {
   var id = sessionStorage.getItem('ft_betreiber_id');
   var name = sessionStorage.getItem('ft_betreiber_name');
-  if (!id) { window.location.href = 'index.html'; return; }
   document.getElementById('header-name').textContent = name;
 
   // KPI: Tage

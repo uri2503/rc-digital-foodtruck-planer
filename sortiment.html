@@ -166,7 +166,9 @@
 <script>
 var SUPABASE_URL = 'https://ysqzdqazcgyuzdorauiq.supabase.co';
 var SUPABASE_KEY = 'YOUR_ANON_KEY';
-var BETREIBER_ID = sessionStorage.getItem('ft_betreiber_id');
+var BETREIBER_ID = '9ec49d49-6d3f-429e-bec4-79db0354cb73';
+var BETREIBER_NAME = "Lou's Maultasche";
+var BETREIBER_ID = '9ec49d49-6d3f-429e-bec4-79db0354cb73';
 var allProdukte = [];
 var activeFilter = '';
 
@@ -269,7 +271,6 @@ function loescheProdukt(id) {
   });
 }
 
-if (!BETREIBER_ID) { window.location.href = 'index.html'; }
 else { loadProdukte(); }
 </script>
 </body>

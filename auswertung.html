@@ -193,15 +193,16 @@
 <script>
 var SUPABASE_URL = 'https://ysqzdqazcgyuzdorauiq.supabase.co';
 var SUPABASE_KEY = 'YOUR_ANON_KEY';
-var BETREIBER_ID = sessionStorage.getItem('ft_betreiber_id');
-var BETREIBER_NAME = sessionStorage.getItem('ft_betreiber_name') || "Lou's Maultasche";
+var BETREIBER_ID = '9ec49d49-6d3f-429e-bec4-79db0354cb73';
+var BETREIBER_NAME = "Lou's Maultasche";
+var BETREIBER_ID = '9ec49d49-6d3f-429e-bec4-79db0354cb73';
+var BETREIBER_NAME = "Lou's Maultasche";
 
 function headers() {
   return { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
 }
 
 function starteAnalyse() {
-  if (!BETREIBER_ID) { window.location.href = 'index.html'; return; }
 
   var btn = document.getElementById('btn-analyse');
   btn.disabled = true;
@@ -356,7 +357,6 @@ function starteKIAnalyse(stats, eintraege, tage, konzeptFilter) {
   });
 }
 
-if (!BETREIBER_ID) window.location.href = 'index.html';
 </script>
 </body>
 </html>
